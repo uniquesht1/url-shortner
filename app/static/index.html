@@ -1,0 +1,675 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>URL Shortener</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #090a0f;
+        --card-bg: #12141a;
+        --card-border: #1e222d;
+        --input-bg: #0b0d13;
+        --input-border: #262b38;
+        --text-main: #f0f2f5;
+        --text-muted: #798293;
+        --accent: #3b82f6;
+        --accent-hover: #2563eb;
+        --accent-glow: rgba(59, 130, 246, 0.15);
+        --success: #10b981;
+        --error: #ef4444;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family:
+          "Inter",
+          -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
+        background-color: var(--bg);
+        background-image: radial-gradient(
+          rgba(255, 255, 255, 0.07) 1px,
+          transparent 1px
+        );
+        background-size: 24px 24px;
+        color: var(--text-main);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 24px 16px;
+      }
+
+      .wrapper {
+        width: 100%;
+        max-width: 560px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      /* Top utility bar */
+      .top-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 4px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        color: #ffffff;
+      }
+
+      .brand-mark {
+        font-family: "JetBrains Mono", monospace;
+        color: var(--accent);
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.25);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.75rem;
+      }
+
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        background: #12141a;
+        border: 1px solid var(--card-border);
+        padding: 3px 8px;
+        border-radius: 999px;
+      }
+
+      .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--success);
+        box-shadow: 0 0 6px var(--success);
+      }
+
+      /* Main Container */
+      .card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 12px;
+        padding: 28px;
+        box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.6);
+      }
+
+      .header {
+        margin-bottom: 20px;
+      }
+
+      h1 {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 4px;
+      }
+
+      .desc {
+        font-size: 0.8125rem;
+        color: var(--text-muted);
+      }
+
+      /* Form & Input */
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+
+      input[type="url"] {
+        width: 100%;
+        background: var(--input-bg);
+        border: 1px solid var(--input-border);
+        border-radius: 8px;
+        padding: 12px 105px 12px 14px;
+        font-size: 0.875rem;
+        font-family: "JetBrains Mono", monospace;
+        color: #ffffff;
+        outline: none;
+        transition: all 0.2s ease;
+      }
+
+      input[type="url"]:focus {
+        border-color: var(--accent);
+        box-shadow:
+          0 0 0 1px var(--accent),
+          0 0 20px var(--accent-glow);
+      }
+
+      input[type="url"]::placeholder {
+        font-family: "Inter", sans-serif;
+        color: #4b5565;
+      }
+
+      .submit-btn {
+        position: absolute;
+        right: 6px;
+        background: var(--accent);
+        color: #ffffff;
+        border: none;
+        border-radius: 6px;
+        padding: 7px 14px;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.15s ease;
+      }
+
+      .submit-btn:hover {
+        background: var(--accent-hover);
+      }
+
+      .submit-btn:active {
+        transform: scale(0.98);
+      }
+
+      .submit-btn:disabled {
+        background: #1f242e;
+        color: #555e6d;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .kbd-hint {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.6875rem;
+        opacity: 0.7;
+      }
+
+      .error-msg {
+        display: none;
+        color: var(--error);
+        font-size: 0.8125rem;
+        background: rgba(239, 68, 68, 0.08);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        border-radius: 6px;
+        padding: 8px 12px;
+        animation: fadeIn 0.2s ease;
+      }
+
+      /* Result Box */
+      .result-box {
+        display: none;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid var(--card-border);
+        animation: slideDown 0.25s ease;
+      }
+
+      .result-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+
+      .result-tag {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.6875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-muted);
+      }
+
+      .result-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--input-bg);
+        border: 1px solid var(--input-border);
+        border-radius: 8px;
+        padding: 8px 10px;
+      }
+
+      .result-link {
+        flex: 1;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.875rem;
+        color: #60a5fa;
+        text-decoration: none;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .result-link:hover {
+        text-decoration: underline;
+      }
+
+      .action-btn {
+        background: #1b1e27;
+        border: 1px solid #282e3b;
+        color: #c9d1d9;
+        border-radius: 6px;
+        padding: 6px 10px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.15s ease;
+        text-decoration: none;
+      }
+
+      .action-btn:hover {
+        background: #252b38;
+        border-color: #3b4252;
+        color: #ffffff;
+      }
+
+      .action-btn.copied {
+        background: #064e3b;
+        border-color: #059669;
+        color: #a7f3d0;
+      }
+
+      /* QR Code Drawer */
+      .qr-container {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        margin-top: 14px;
+        padding: 16px;
+        background: var(--input-bg);
+        border: 1px solid var(--input-border);
+        border-radius: 8px;
+        animation: fadeIn 0.2s ease;
+      }
+
+      .qr-img {
+        width: 140px;
+        height: 140px;
+        background: #ffffff;
+        padding: 8px;
+        border-radius: 6px;
+      }
+
+      .qr-caption {
+        font-size: 0.6875rem;
+        color: var(--text-muted);
+        font-family: "JetBrains Mono", monospace;
+      }
+
+      /* History section */
+      .history-card {
+        display: none;
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 12px;
+        padding: 20px 24px;
+      }
+
+      .history-title {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
+        margin-bottom: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .clear-history-btn {
+        background: none;
+        border: none;
+        color: #555e6d;
+        font-size: 0.6875rem;
+        cursor: pointer;
+        font-family: inherit;
+      }
+
+      .clear-history-btn:hover {
+        color: var(--error);
+      }
+
+      .history-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .history-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 10px;
+        background: var(--input-bg);
+        border: 1px solid #1a1e28;
+        border-radius: 6px;
+        font-size: 0.8125rem;
+      }
+
+      .history-urls {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        overflow: hidden;
+        margin-right: 12px;
+      }
+
+      .history-short {
+        font-family: "JetBrains Mono", monospace;
+        color: #93c5fd;
+        text-decoration: none;
+        font-size: 0.8125rem;
+      }
+
+      .history-short:hover {
+        text-decoration: underline;
+      }
+
+      .history-orig {
+        color: #555e6d;
+        font-size: 0.6875rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 320px;
+      }
+
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <!-- Top Utility Bar -->
+      <div class="top-bar">
+        <div class="brand">
+          <span class="brand-mark">&gt;/</span>
+          <span>URL Shortener</span>
+        </div>
+      </div>
+
+      <!-- Main Card -->
+      <div class="card">
+        <div class="header">
+          <h1>Shorten URL</h1>
+          <p class="desc">
+            Snowflake 64-bit ID generator with distributed Redis cache.
+          </p>
+        </div>
+
+        <form id="shorten-form">
+          <div class="input-wrapper">
+            <input
+              type="url"
+              id="url-input"
+              placeholder="https://example.com/long/path/name..."
+              required
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button type="submit" id="submit-btn" class="submit-btn">
+              <span>Shorten</span>
+              <span class="kbd-hint">&#x21B5;</span>
+            </button>
+          </div>
+          <div id="error-message" class="error-msg"></div>
+        </form>
+
+        <!-- Shortened Result Box -->
+        <div id="result-box" class="result-box">
+          <div class="result-header">
+            <span class="result-tag">Shortened Link</span>
+            <span
+              id="speed-tag"
+              class="result-tag"
+              style="color: var(--success)"
+              >&#x2713; Ready</span
+            >
+          </div>
+          <div class="result-row">
+            <a
+              id="result-link"
+              class="result-link"
+              target="_blank"
+              rel="noopener noreferrer"
+            ></a>
+            <button type="button" id="copy-btn" class="action-btn">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path
+                  d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                ></path>
+              </svg>
+              <span id="copy-text">Copy</span>
+            </button>
+            <button type="button" id="qr-toggle-btn" class="action-btn">
+              QR
+            </button>
+            <a
+              id="visit-btn"
+              class="action-btn"
+              target="_blank"
+              rel="noopener noreferrer"
+              >&#x2197;</a
+            >
+          </div>
+
+          <!-- Optional QR Code View -->
+          <div id="qr-container" class="qr-container">
+            <img id="qr-img" class="qr-img" alt="QR Code" />
+            <span class="qr-caption">Scan to open shortened URL</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Session History -->
+      <div id="history-card" class="history-card">
+        <div class="history-title">
+          <span>Recent Links</span>
+          <button id="clear-history" class="clear-history-btn">Clear</button>
+        </div>
+        <ul id="history-list" class="history-list"></ul>
+      </div>
+    </div>
+
+    <script>
+      const form = document.getElementById("shorten-form");
+      const input = document.getElementById("url-input");
+      const submitBtn = document.getElementById("submit-btn");
+      const errorBox = document.getElementById("error-message");
+      const resultBox = document.getElementById("result-box");
+      const resultLink = document.getElementById("result-link");
+      const copyBtn = document.getElementById("copy-btn");
+      const copyText = document.getElementById("copy-text");
+      const visitBtn = document.getElementById("visit-btn");
+      const qrToggleBtn = document.getElementById("qr-toggle-btn");
+      const qrContainer = document.getElementById("qr-container");
+      const qrImg = document.getElementById("qr-img");
+      const historyCard = document.getElementById("history-card");
+      const historyList = document.getElementById("history-list");
+      const clearHistoryBtn = document.getElementById("clear-history");
+
+      // Local Storage Session History
+      const STORAGE_KEY = "url_shortener_recent_v1";
+
+      function loadHistory() {
+        try {
+          const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+          if (stored.length === 0) {
+            historyCard.style.display = "none";
+            return;
+          }
+          historyList.innerHTML = "";
+          stored.slice(0, 5).forEach((item) => {
+            const li = document.createElement("li");
+            li.className = "history-item";
+            li.innerHTML = `
+            <div class="history-urls">
+              <a href="${item.short_url}" target="_blank" class="history-short">${item.short_url}</a>
+              <span class="history-orig" title="${item.original_url}">${item.original_url}</span>
+            </div>
+            <button class="action-btn" onclick="navigator.clipboard.writeText('${item.short_url}'); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy', 1200)">Copy</button>
+          `;
+            historyList.appendChild(li);
+          });
+          historyCard.style.display = "block";
+        } catch (e) {
+          historyCard.style.display = "none";
+        }
+      }
+
+      function saveToHistory(short_url, original_url) {
+        try {
+          let stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+          stored = stored.filter((item) => item.short_url !== short_url);
+          stored.unshift({ short_url, original_url, timestamp: Date.now() });
+          localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(stored.slice(0, 10)),
+          );
+          loadHistory();
+        } catch (e) {}
+      }
+
+      clearHistoryBtn.addEventListener("click", () => {
+        localStorage.removeItem(STORAGE_KEY);
+        loadHistory();
+      });
+
+      loadHistory();
+
+      // Form Submission
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const rawUrl = input.value.trim();
+
+        errorBox.style.display = "none";
+        errorBox.textContent = "";
+        qrContainer.style.display = "none";
+
+        if (!rawUrl) return;
+
+        submitBtn.disabled = true;
+        submitBtn.querySelector("span").textContent = "...";
+
+        const startTime = performance.now();
+
+        try {
+          const response = await fetch("/shorten", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ url: rawUrl }),
+          });
+
+          const data = await response.json();
+          const duration = Math.round(performance.now() - startTime);
+
+          if (!response.ok) {
+            const detail = data.detail;
+            if (Array.isArray(detail)) {
+              throw new Error(detail[0]?.msg || "Invalid URL format.");
+            }
+            throw new Error(detail || "Failed to shorten URL.");
+          }
+
+          resultLink.href = data.short_url;
+          resultLink.textContent = data.short_url;
+          visitBtn.href = data.short_url;
+
+          // Set up QR Code URL
+          qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(data.short_url)}`;
+
+          document.getElementById("speed-tag").textContent = `${duration}ms`;
+          resultBox.style.display = "block";
+
+          saveToHistory(data.short_url, data.original_url);
+          input.value = "";
+        } catch (err) {
+          errorBox.textContent = err.message;
+          errorBox.style.display = "block";
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.querySelector("span").textContent = "Shorten";
+        }
+      });
+
+      // Copy Button Handler
+      copyBtn.addEventListener("click", async () => {
+        const urlToCopy = resultLink.textContent;
+        if (!urlToCopy) return;
+
+        await navigator.clipboard.writeText(urlToCopy);
+        copyText.textContent = "Copied!";
+        copyBtn.classList.add("copied");
+        setTimeout(() => {
+          copyText.textContent = "Copy";
+          copyBtn.classList.remove("copied");
+        }, 1500);
+      });
+
+      // QR Code Toggle
+      qrToggleBtn.addEventListener("click", () => {
+        qrContainer.style.display =
+          qrContainer.style.display === "flex" ? "none" : "flex";
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: url-shortener
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: RUN_WORKER_IN_BACKGROUND
+        value: "true"
+      - key: INSTANCE_NAME
+        value: "render-api"
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: RABBITMQ_URL
+        sync: false
